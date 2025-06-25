@@ -1,0 +1,61 @@
+\section*{Question 2}
+
+\textit{Language modelling is a foundational task in Natural Language Processing (NLP), enabling applications such as machine translation, speech recognition, and text generation. While statistical approaches such as n-gram models dominated early research, the field has shifted significantly toward neural language models, particularly those based on the Transformer architecture.}
+
+\subsection*{Part A}
+
+\textit{Explain how n-gram models calculate the probability of a sequence of words. Compare this to how neural models estimate these probabilities. Facilitate your answer with examples.}
+
+\begin{center}
+  $\ast$~$\ast$~$\ast$
+\end{center}
+
+N-gram models are statistical language models that estimate the probability of a word sequence by relying on the Markov assumption \parencite{young_week_2024}. This assumption posits that the probability of a word depends only on a fixed number of preceding words ($n-1$ words).
+
+Chain rule is applied to calculate the probability of a sequence of words, $P(w_1,w_2,\ldots,w_n)$:
+
+$$P(w_1, w_2, \ldots, w_n) = P(w_1) \times P(w_2|w_1) \times P(w_3|w_1, w_2) \times \ldots \times P(w_m|w_1, \ldots, w_{n-1})$$
+
+This formula states that the probability of a sequence is the product of the conditional probabilities of each word given its preceding words. However, calculating the exact conditional probabilities in the chain rule is difficult due to data sparsity - many sequences will not have occurred in the training data. N-gram models simplify this by approximating the history:
+
+$$ P(w_i \mid w_1,\ldots,w_{i-1}) \approx P(w_i \mid w_{i-n+1},\ldots,w_{i-1}) $$
+
+This means the probability of a word $w_i$ is approximated by its probability given the previous n-1 words. Of course, the probabilities themselves are typically estimated using Maximum Likelihood Estimation (MLE) from a large text corpus. For an n-gram, the probability is calculated as the count of the specific n-gram divided by the count of its prefix (the n-1 preceding words) \parencite{keselji_speech_2025}. For a bigram model, the probability of word $w_i$ given word $w_{i-1}$ is:
+
+$$P(w_i | w_{i-1})=\frac{Count(w_{i-1},w_i )}{(Count(w_{i-1}) )}$$
+
+Let's calculate the probability of the sentence "I love NLP" using a bigram model. Assume we have the following counts from a corpus:
+\begin{itemize}
+    \item Count(I) = 1000
+    \item Count(I love) = 20
+    \item Count(love) = 500
+    \item Count(love NLP) = 50
+    \item Count($\langle$s$\rangle$ I) = 300 (where $\langle$s$\rangle$ is a start-of-sentence token)
+    \item Count(NLP $\langle$/s$\rangle$) = 20 (where $\langle$/s$\rangle$ is an end-of-sentence token)
+    \item Count(NLP) = 100
+\end{itemize}
+
+Calculation:
+
+\begin{itemize}
+    \item $P(I love NLP) \approx P(I|<s>) * P(love|I) * P(NLP|love) * P(</s>|NLP)$
+	\item $P(I|<s>) = Count(<s> I) / Count(<s>)$
+	\item $P(love|I) = \frac{Count(I love)}{Count(I)} = 200 / 1000 = 0.2$
+	\item $P(NLP|love) = \frac{Count(love NLP)}{Count(love)} = 50 / 500 = 0.1$
+	\item $P(</s>|NLP) = \frac{Count(NLP </s>)}{Count(NLP)}$
+\end{itemize}
+
+
+However, the n-gram models suffered from sparsity and limited context issues where many n-grams will not appear in the training data, leading to zero probabilities. Smoothing techniques such as Laplace or Add-k smoothing, Good-Turing, Kneser-Ney are used to address this. Furthermore, N-grams only consider a fixed, short context ($n-1$ words), failing to capture long-range dependencies in language. Thus, advancement in neural language models (NLMs) overcome some limitations of n-gram models by learning distributed representations of words (word embeddings) and using neural networks to estimate word sequence probabilities.
+
+Instead of relying on raw word counts, NLMs map words to dense vector representations (embeddings). These embeddings capture semantic and syntactic similarities between words, allowing the model to generalize better to unseen word combinations \parencite{bengio_neural_2003}. In recent decades, various neural network architectures are used, starting from feedforward neural network that takes a fixed-size window of previous words as input to predict the next word; Recurrent Neural Networks (RNNs) and Long Short-Term Memory (LSTMs) where RNNs are designed to process sequential data. They maintain a hidden state that theoretically captures information from all previous words in the sequence, allowing them to model longer-range dependencies than n-grams. On the other hand, LSTMs are a type of RNN specifically designed to better handle long-range dependencies by using gating mechanisms. Nowadays, modern state-of-the-art NLMs are predominantly based on the Transformer architecture. Transformers use a mechanism called "self-attention," which allows the model to weigh the importance of different words in the context (even distant ones) when predicting the next word.
+
+NLMs typically predict the probability of the next word given the preceding context. The network processes the input sequence (or its embedding representation) and outputs a probability distribution over the entire vocabulary for the next word. This is often achieved using a SoftMax activation function in the output layer:
+
+$$P(w_i|w_1,\ldots,w_{i-1} )=softmax(f(context(w_i,\ldots,w_{i-1} )))$$
+
+\textit{*Note: $f$ is the neural network}
+
+NLMs are trained on large text corpora to maximize the likelihood of the training data. This is typically done using variants of stochastic gradient descent and backpropagation, minimizing a loss function like cross-entropy. Let's do a thought experiment on how neural model works where we use the sentence \textbf{"I am falling in love with \_\_"}:
+
+An NLM would first convert "I", "am", "falling", "in", "love", “with”, into their respective word embeddings. Then, these embeddings would be processed by the neural network be it an LSTM or a transformer. The network's internal state or attention mechanism would capture the contextual information. Finally, the output layer would produce a probability distribution over all words in the vocabulary. Words like \textbf{"Maya,"} \textbf{"Paris"}, or \textbf{"Latte"} would ideally receive higher probabilities than semantically, or syntactically implausible words like "bullshit" or "laziness".
